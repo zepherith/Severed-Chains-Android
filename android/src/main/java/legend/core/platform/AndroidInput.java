@@ -198,9 +198,41 @@ public final class AndroidInput {
     return true;
   }
 
+  /**
+   * Swap A/B and X/Y on physical gamepads, for controllers that report their
+   * Nintendo-style printed labels rather than positions (e.g. AYN Odin in
+   * Standard style). Pushed from the swap_face_buttons config each tick.
+   */
+  public static volatile boolean swapFaceButtons;
+
+  /** (deviceId, keyCode) -> button sent on press, so repeats and the release match the press if the swap toggles while held */
+  private static final Map<Long, InputButton> heldPadButtons = new HashMap<>();
+
+  private static InputButton swapFaceButton(final InputButton button) {
+    return switch(button) {
+      case A -> InputButton.B;
+      case B -> InputButton.A;
+      case X -> InputButton.Y;
+      case Y -> InputButton.X;
+      default -> button;
+    };
+  }
+
   private static boolean handleGamepadKey(final KeyEvent event, final int keyCode, final boolean down) {
-    final InputButton button = GAMEPAD_BUTTON_MAP.get(keyCode);
-    if(button != null) {
+    final InputButton mapped = GAMEPAD_BUTTON_MAP.get(keyCode);
+    if(mapped != null) {
+      final long heldKey = (long)event.getDeviceId() << 32 | keyCode & 0xffffffffL;
+      InputButton button = heldPadButtons.get(heldKey);
+      if(button == null) {
+        button = swapFaceButtons ? swapFaceButton(mapped) : mapped;
+      }
+
+      if(down) {
+        heldPadButtons.put(heldKey, button);
+      } else {
+        heldPadButtons.remove(heldKey);
+      }
+
       gamepadButton(event.getDeviceId(), button, down);
       return true;
     }

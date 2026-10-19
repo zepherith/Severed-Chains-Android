@@ -68,6 +68,7 @@ import legend.game.modding.coremod.config.SaveAnywhereConfig;
 import legend.game.modding.coremod.config.SecondaryCharacterXpMultiplierConfigEntry;
 import legend.game.modding.coremod.config.SfxVolumeConfigEntry;
 import legend.game.modding.coremod.config.ShowAdvancedOptionsConfigEntry;
+import legend.game.modding.coremod.config.SwapFaceButtonsConfigEntry;
 import legend.game.modding.coremod.config.TouchControlsOpacityConfigEntry;
 import legend.game.modding.coremod.config.TouchFaceButtonsConfigEntry;
 import legend.game.modding.coremod.config.TransformationModeConfigEntry;
@@ -116,6 +117,7 @@ public class CoreMod {
   public static final RegistryDelegate<BoolConfigEntry> RUMBLE_CONFIG = CONFIG_REGISTRAR.register("rumble", () -> new BoolConfigEntry(true, ConfigStorageLocation.GLOBAL, ConfigCategory.CONTROLS));
   public static final RegistryDelegate<RumbleIntensityConfigEntry> RUMBLE_INTENSITY_CONFIG = CONFIG_REGISTRAR.register("rumble_intensity", RumbleIntensityConfigEntry::new);
   public static final RegistryDelegate<GamepadButtonLabelsConfigEntry> GAMEPAD_BUTTON_LABELS_CONFIG = CONFIG_REGISTRAR.register("gamepad_button_labels", GamepadButtonLabelsConfigEntry::new);
+  public static final RegistryDelegate<SwapFaceButtonsConfigEntry> SWAP_FACE_BUTTONS_CONFIG = CONFIG_REGISTRAR.register("swap_face_buttons", SwapFaceButtonsConfigEntry::new);
   public static final RegistryDelegate<TouchFaceButtonsConfigEntry> TOUCH_FACE_BUTTONS_CONFIG = CONFIG_REGISTRAR.register("touch_face_buttons", TouchFaceButtonsConfigEntry::new);
   public static final RegistryDelegate<TouchControlsOpacityConfigEntry> TOUCH_CONTROLS_OPACITY_CONFIG = CONFIG_REGISTRAR.register("touch_controls_opacity", TouchControlsOpacityConfigEntry::new);
   /** Face-button cluster position/scale, written back by the touch overlay; no menu control. */

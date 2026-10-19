@@ -57,6 +57,7 @@ import static legend.game.modding.coremod.CoreMod.MENU_OUTER_DEADZONE_CONFIG;
 import static legend.game.modding.coremod.CoreMod.MOVEMENT_INNER_DEADZONE_CONFIG;
 import static legend.game.modding.coremod.CoreMod.MOVEMENT_OUTER_DEADZONE_CONFIG;
 import static legend.game.modding.coremod.CoreMod.RECEIVE_INPUT_ON_INACTIVE_WINDOW_CONFIG;
+import static legend.game.modding.coremod.CoreMod.SWAP_FACE_BUTTONS_CONFIG;
 import static legend.game.modding.coremod.CoreMod.TOUCH_CONTROLS_OPACITY_CONFIG;
 import static legend.game.modding.coremod.CoreMod.TOUCH_FACE_BUTTONS_CONFIG;
 import static legend.game.modding.coremod.CoreMod.TOUCH_FACE_SCALE_CONFIG;
@@ -536,6 +537,8 @@ public class AndroidPlatformManager extends PlatformManager {
       this.lastTouchFaceY = Float.NaN;
       this.lastTouchFaceScale = Float.NaN;
     }
+
+    AndroidInput.swapFaceButtons = CONFIG.getConfig(SWAP_FACE_BUTTONS_CONFIG.get());
 
     // Push the face-button glyph style to the touch overlay when it changes
     final TouchFaceButtonStyle faceButtonStyle = CONFIG.getConfig(TOUCH_FACE_BUTTONS_CONFIG.get());
