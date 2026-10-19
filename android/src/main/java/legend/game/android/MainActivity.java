@@ -1,6 +1,5 @@
 package legend.game.android;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.hardware.input.InputManager;
@@ -32,7 +31,6 @@ import java.nio.file.Path;
  */
 public final class MainActivity extends Activity {
   private static final String TAG = "SC-Main";
-  private static final int REQ_LOG_STORAGE = 1;
 
   private SurfaceView surfaceView;
   private TouchControlsView touchControls;
@@ -46,23 +44,14 @@ public final class MainActivity extends Activity {
     super.onCreate(savedInstanceState);
 
     // Keep the screen on and visible above the keyguard while running
-    if(android.os.Build.VERSION.SDK_INT >= 27) {
-      this.setShowWhenLocked(true);
-      this.setTurnScreenOn(true);
-    } else {
-      this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-        | android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-    }
+    this.setShowWhenLocked(true);
+    this.setTurnScreenOn(true);
     this.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     AndroidEnv.init(this);
 
     // Shared logs in Documents/Severed Chains/logs: crash logs in every build,
-    // verbose engine logs in debug builds. API 26-28 need WRITE_EXTERNAL_STORAGE
-    // at runtime; MediaStore covers 29+. If the user denies, logging is a no-op.
-    if(GameLog.needsPermission(this)) {
-      this.requestPermissions(new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQ_LOG_STORAGE);
-    }
+    // verbose engine logs in debug builds.
     GameLog.init(this);
     GameLog.installCrashHandler();
     // Escalates the persisted GL fallback level if the previous run died
@@ -318,7 +307,7 @@ public final class MainActivity extends Activity {
       // Same-versionCode updates (dispatch/dev builds) still change
       // lastUpdateTime, so bundled assets can never go stale.
       final android.content.pm.PackageInfo info = this.getPackageManager().getPackageInfo(this.getPackageName(), 0);
-      final long code = android.os.Build.VERSION.SDK_INT >= 28 ? info.getLongVersionCode() : info.versionCode;
+      final long code = info.getLongVersionCode();
       version = code + "-" + info.lastUpdateTime;
     } catch(final android.content.pm.PackageManager.NameNotFoundException e) {
       throw new IOException(e);

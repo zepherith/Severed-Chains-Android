@@ -68,7 +68,7 @@ public class Updater {
       if(conn.getResponseCode() / 100 != 2) {
         LOGGER.warn("Update check failed: %d", conn.getResponseCode());
       } else {
-        // API 26 lacks InputStream.readAllBytes; read in chunks.
+        // API 30 lacks InputStream.readAllBytes; read in chunks.
         final StringBuilder body = new StringBuilder();
         final byte[] chunk = new byte[8192];
         try(final InputStream in = conn.getInputStream()) {

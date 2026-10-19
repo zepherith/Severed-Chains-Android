@@ -1,6 +1,5 @@
 package legend.game.android;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -11,7 +10,6 @@ import android.database.Cursor;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.StatFs;
 import android.provider.Settings;
 import android.provider.OpenableColumns;
@@ -42,7 +40,7 @@ import java.util.Locale;
  *
  * Lays out as two columns on wide screens (info/storage left, discs/actions
  * right) and a single scrolling column on narrow ones. All framework views —
- * the app targets API 26 so no appcompat/material widgets.
+ * the app has no appcompat/material widgets.
  */
 public final class SetupView extends ScrollView {
   private static final String TAG = "SC-Setup";
@@ -439,17 +437,13 @@ public final class SetupView extends ScrollView {
   // Picker + import
   // ------------------------------------------------------------------
 
-  /** All-files access for the public Documents folders (or legacy WRITE on API <=28). */
+  /** All-files access for the public Documents folders. */
   private void requestStorageAccess() {
-    if(Build.VERSION.SDK_INT >= 30) {
-      try {
-        this.activity.startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-          Uri.parse("package:" + this.activity.getPackageName())));
-      } catch(final ActivityNotFoundException e) {
-        this.activity.startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
-      }
-    } else {
-      this.activity.requestPermissions(new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, 42);
+    try {
+      this.activity.startActivity(new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+        Uri.parse("package:" + this.activity.getPackageName())));
+    } catch(final ActivityNotFoundException e) {
+      this.activity.startActivity(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
     }
   }
 
