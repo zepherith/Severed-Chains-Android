@@ -1,6 +1,5 @@
 package legend.game.android;
 
-import android.Manifest;
 import android.app.ActivityManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -25,7 +24,6 @@ import org.apache.logging.log4j.core.config.NullConfiguration;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -41,9 +39,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Shared logs in Documents/Severed Chains/logs/.
  *
- * API 29+ writes via MediaStore (no permission). API 26-28 falls back to direct
- * file IO under WRITE_EXTERNAL_STORAGE (declared in the manifest with
- * maxSdkVersion=28 and requested at startup).
+ * Written via MediaStore, which needs no permission.
  *
  * Both builds write crash-<ts>.log on engine crashes and uncaught exceptions
  * (with the tail of the engine's private debug.log appended) and prune files
@@ -54,7 +50,6 @@ public final class GameLog {
   private static final String TAG = "SC-GameLog";
   private static final String LOG_DIR = "Severed Chains/logs";
   private static final String REL_PATH = Environment.DIRECTORY_DOCUMENTS + "/" + LOG_DIR + "/";
-  private static final long MAX_AGE_MS = TimeUnit.DAYS.toMillis(14);
   /** Lines of the engine's debug.log appended to each crash log. */
   private static final int LOG_TAIL_LINES = 300;
   /** How far back from the end of debug.log to read when looking for them. */
@@ -65,90 +60,52 @@ public final class GameLog {
 
   private GameLog() { }
 
-  /** Call once from MainActivity.onCreate. Returns false if shared storage isn't writable. */
-  public static boolean init(final Context context) {
+  /** Call once from MainActivity.onCreate. */
+  public static void init(final Context context) {
     appContext = context.getApplicationContext();
     debuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
-    if(!writable()) {
-      Log.w(TAG, "Shared log storage unavailable (permission not granted)");
-      return false;
-    }
     prune();
     Log.i(TAG, "Shared logs ready -> Documents/" + LOG_DIR + (debuggable ? " (verbose)" : ""));
-    return true;
-  }
-
-  public static boolean needsPermission(final Context context) {
-    return Build.VERSION.SDK_INT < 29
-      && context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
-  }
-
-  private static boolean writable() {
-    return Build.VERSION.SDK_INT >= 29 || !needsPermission(appContext);
   }
 
   /** Deletes log files older than 14 days in the shared logs dir. */
   private static void prune() {
     final long cutoff = System.currentTimeMillis() / 1000 - TimeUnit.DAYS.toSeconds(14);
-    if(Build.VERSION.SDK_INT >= 29) {
-      final ContentResolver res = appContext.getContentResolver();
-      final Uri files = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-      try(final Cursor c = res.query(files,
-        new String[] {MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_MODIFIED},
-        MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DATE_MODIFIED + "<?",
-        new String[] {REL_PATH, String.valueOf(cutoff)}, null)) {
-        if(c == null) {
-          return;
-        }
-        while(c.moveToNext()) {
-          final Uri item = Uri.withAppendedPath(files, String.valueOf(c.getLong(0)));
-          res.delete(item, null, null);
-        }
-      } catch(final RuntimeException e) {
-        Log.e(TAG, "Failed to prune old logs", e);
-      }
-    } else {
-      final File dir = legacyDir();
-      final File[] files = dir.listFiles();
-      if(files == null) {
+    final ContentResolver res = appContext.getContentResolver();
+    final Uri files = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+    try(final Cursor c = res.query(files,
+      new String[] {MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_MODIFIED},
+      MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DATE_MODIFIED + "<?",
+      new String[] {REL_PATH, String.valueOf(cutoff)}, null)) {
+      if(c == null) {
         return;
       }
-      for(final File f : files) {
-        if(f.isFile() && f.lastModified() < System.currentTimeMillis() - MAX_AGE_MS) {
-          f.delete();
-        }
+      while(c.moveToNext()) {
+        final Uri item = Uri.withAppendedPath(files, String.valueOf(c.getLong(0)));
+        res.delete(item, null, null);
       }
+    } catch(final RuntimeException e) {
+      Log.e(TAG, "Failed to prune old logs", e);
     }
   }
 
   /** Opens an OutputStream for a new file in the shared logs dir. Caller closes it. */
   public static OutputStream newLog(final String name) throws IOException {
-    if(Build.VERSION.SDK_INT >= 29) {
-      final ContentValues values = new ContentValues();
-      values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-      // No MIME_TYPE: "text/plain" makes MediaStore rewrite the display name
-      // to *.log.txt; leaving it unset keeps the .log extension intact.
-      values.put(MediaStore.MediaColumns.RELATIVE_PATH, REL_PATH);
-      final Uri uri = appContext.getContentResolver()
-        .insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), values);
-      if(uri == null) {
-        throw new IOException("MediaStore insert returned null");
-      }
-      final OutputStream out = appContext.getContentResolver().openOutputStream(uri);
-      if(out == null) {
-        throw new IOException("openOutputStream returned null for " + uri);
-      }
-      return out;
+    final ContentValues values = new ContentValues();
+    values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+    // No MIME_TYPE: "text/plain" makes MediaStore rewrite the display name
+    // to *.log.txt; leaving it unset keeps the .log extension intact.
+    values.put(MediaStore.MediaColumns.RELATIVE_PATH, REL_PATH);
+    final Uri uri = appContext.getContentResolver()
+      .insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), values);
+    if(uri == null) {
+      throw new IOException("MediaStore insert returned null");
     }
-    final File dir = legacyDir();
-    if(!dir.isDirectory() && !dir.mkdirs()) {
-      throw new IOException("Failed to create " + dir);
+    final OutputStream out = appContext.getContentResolver().openOutputStream(uri);
+    if(out == null) {
+      throw new IOException("openOutputStream returned null for " + uri);
     }
-    return new FileOutputStream(new File(dir, name));
-  }
-
-  private static File legacyDir() {
-    return new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), LOG_DIR);
+    return out;
   }
 
   private static String timestamp() {
@@ -161,7 +118,7 @@ public final class GameLog {
     }
     try {
       final PackageInfo pi = appContext.getPackageManager().getPackageInfo(appContext.getPackageName(), 0);
-      final long code = Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode;
+      final long code = pi.getLongVersionCode();
       return pi.versionName + " (" + code + ")";
     } catch(final PackageManager.NameNotFoundException e) {
       return "?";
@@ -226,9 +183,6 @@ public final class GameLog {
 
   /** Writes a crash-<ts>.log with the given throwable + device/GL info. Safe to call during a crash. */
   public static void writeCrashLog(final Throwable throwable) {
-    if(!writable()) {
-      return;
-    }
     try(final OutputStream out = newLog("crash-" + timestamp() + ".log")) {
       final PrintWriter w = new PrintWriter(out);
       w.println("Severed Chains crash log");
@@ -315,7 +269,7 @@ public final class GameLog {
    * without our appender, so re-attach whenever the configuration changes.
    */
   public static synchronized void attachVerboseAppender() {
-    if(!debuggable || appContext == null || !writable()) {
+    if(!debuggable || appContext == null) {
       return;
     }
 

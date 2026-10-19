@@ -15,7 +15,7 @@ Even though it is not an emulator, Severed Chains cannot be played without the u
 
 ## Getting the game
 
-1. Download the latest `android-release.apk` from the [Releases page](https://github.com/dracinn/Severed-Chains-Android/releases) and install it.
+1. Download the latest `android-release.apk` from the [Releases page](https://github.com/dracinn/Severed-Chains-Android/releases) and install it. Requires Android 11 or newer.
 2. On first launch, the app walks you through adding your Legend of Dragoon disc images (ISOs/BINs).
 3. Pick a campaign and play — saves, mods, and settings carry between runs.
 
@@ -46,7 +46,7 @@ Game data normally lives in the app's private storage, which isn't reachable wit
 - `Saves` — your campaign saves live here once access is granted, so you can back them up, restore them, and keep them even if the app is uninstalled. Saves made before granting access are moved across automatically on next launch.
 - `ISOs` — disc images are detected here automatically: the setup screen and the unpacker scan it alongside the internal folder. Discs picked through the file picker are copied into `ISOs` when access is granted (and ones already inside the app move across on next launch), so you can add, remove, or replace them from a file manager or PC.
 
-To grant access: the setup screen asks once on first run, and its **Enable access** button is always there as a fallback (or grant *All files access* for Severed Chains in system Settings → Apps → Special app access). Uses *All files access* on Android 11+ and the legacy storage permission on Android 9 and below (Android 10 sits in the scoped-storage gap — its file-manager route doesn't apply). If access is revoked while saves live in `Saves`, the game falls back to its internal folder — re-grant to see them again.
+To grant access: the setup screen asks once on first run, and its **Enable access** button is always there as a fallback (or grant *All files access* for Severed Chains in system Settings → Apps → Special app access). If access is revoked while saves live in `Saves`, the game falls back to its internal folder — re-grant to see them again.
 
 
 **Versioning and updates**

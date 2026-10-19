@@ -1,8 +1,6 @@
 package legend.game.android;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
@@ -261,10 +259,7 @@ public final class AndroidEnv {
 
   /** Whether the app can read arbitrary files in shared storage. */
   public static boolean hasSharedStorageAccess() {
-    if(Build.VERSION.SDK_INT >= 30) {
-      return Environment.isExternalStorageManager();
-    }
-    return context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    return Environment.isExternalStorageManager();
   }
 
   /**

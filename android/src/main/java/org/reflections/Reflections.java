@@ -36,7 +36,7 @@ public class Reflections {
         return types;
       }
 
-      // InputStream.readAllBytes is Java 9 (API 33+); read manually for minSdk 26
+      // InputStream.readAllBytes is Java 9 (API 33+); read manually for minSdk 30
       final java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
       final byte[] chunk = new byte[8192];
       for(int n = in.read(chunk); n != -1; n = in.read(chunk)) {
